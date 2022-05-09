@@ -1,11 +1,21 @@
 package com.example.security.security.controller;
 
+import com.example.security.security.model.User;
+import com.example.security.security.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
+@RequiredArgsConstructor
 public class IndexController {
+
+    private final UserRepository userRepository;
+
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @GetMapping("/")
     public String index() {
@@ -40,8 +50,15 @@ public class IndexController {
         return "joinForm";
     }
 
-    @GetMapping("/join")
-    public @ResponseBody String joinProc() {
-        return "join";
+    @PostMapping("/join")
+    public String join(User user) {
+        user.setRole("ROLE_USER");
+        String rawPassword = user.getPassword();
+        String encodePassword = bCryptPasswordEncoder.encode(rawPassword);
+        user.setPassword(encodePassword);
+
+        userRepository.save(user);
+
+        return "redirect:/loginForm";
     }
 }
