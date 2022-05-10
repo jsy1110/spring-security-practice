@@ -1,8 +1,11 @@
 package com.example.security.security.config.auth;
 
+import com.example.security.security.config.LoginUser;
+import com.example.security.security.config.auth.dto.SessionUser;
 import com.example.security.security.model.User;
 import com.example.security.security.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -26,6 +29,9 @@ public class PrincipalDetailsService implements UserDetailsService {
         if (user == null) {
             throw new RuntimeException("no username");
         }
-        return new PrincipalDetails(user);
+
+        SessionUser loginUser = new SessionUser(user);
+
+        return new PrincipalDetails(loginUser);
     }
 }

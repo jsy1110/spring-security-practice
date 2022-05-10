@@ -21,6 +21,7 @@ public class User {
 
     private String username;
     private String password;
+    private String nickname;
     private String email;
     private String role;
 
@@ -31,10 +32,11 @@ public class User {
     private Timestamp createDate;
 
     @Builder
-    public User(String username, String password, String email, String role, String provider, String providerId, Timestamp createDate) {
+    public User(String username, String password, String email, String nickname, String role, String provider, String providerId, Timestamp createDate) {
         this.username = username;
         this.password = password;
         this.email = email;
+        this.nickname = nickname;
         this.role = role;
         this.provider = provider;
         this.providerId = providerId;

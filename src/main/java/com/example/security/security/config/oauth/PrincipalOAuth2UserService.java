@@ -1,6 +1,7 @@
 package com.example.security.security.config.oauth;
 
 import com.example.security.security.config.auth.PrincipalDetails;
+import com.example.security.security.config.auth.dto.SessionUser;
 import com.example.security.security.config.oauth.provider.FacebookUserInfo;
 import com.example.security.security.config.oauth.provider.GoogleUserInfo;
 import com.example.security.security.config.oauth.provider.NaverUserInfo;
@@ -18,6 +19,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityExistsException;
+import javax.servlet.http.HttpSession;
 import java.util.Map;
 
 @Slf4j
@@ -26,14 +28,11 @@ import java.util.Map;
 public class PrincipalOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
+    private final HttpSession httpSession;
 
     // 함수 종료시 @AuthenticationPrincipal 이 만들어짐
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        log.info("getAccessToken : {}", userRequest.getClientRegistration());
-        log.info("getAccessToken : {}", userRequest.getAccessToken());
-        log.info("getAttributes : {}", super.loadUser(userRequest).getAttributes());
-
         /**
          * {getAttributes}
          * sub=101610285939673525081, => username = "google_101610285939673525081"
@@ -42,8 +41,9 @@ public class PrincipalOAuth2UserService extends DefaultOAuth2UserService {
          * email=jsy11101@gmail.com, email_verified=true, locale=ko
          */
 
+        log.info("getAttributes : {}",  super.loadUser(userRequest).getAttributes());
+
         OAuth2User oauth2User = super.loadUser(userRequest);
-        System.out.println("oauth2User.getAttributes() = " + oauth2User.getAttributes());
         
         Oauth2UserInfo oauth2UserInfo = null;
         if (userRequest.getClientRegistration().getRegistrationId().equals("google")) {
@@ -63,6 +63,7 @@ public class PrincipalOAuth2UserService extends DefaultOAuth2UserService {
         String providerId = oauth2UserInfo.getProviderId();
         String username = provider + "_" + providerId;
         String email = oauth2UserInfo.getEmail();
+        String nickname = oauth2UserInfo.getName();
         //String password = bCryptPasswordEncoder.encode("비밀번호");
         String role = "ROLE_USER";
 
@@ -72,6 +73,7 @@ public class PrincipalOAuth2UserService extends DefaultOAuth2UserService {
                     .username(username)
                     .password("password")
                     .email(email)
+                    .nickname(nickname)
                     .role(role)
                     .provider(provider)
                     .providerId(providerId)
@@ -79,7 +81,9 @@ public class PrincipalOAuth2UserService extends DefaultOAuth2UserService {
 
             userRepository.save(user);
         }
+        SessionUser sessionUser = new SessionUser(user);
+        httpSession.setAttribute("user", sessionUser);
 
-        return new PrincipalDetails(user, oauth2User.getAttributes());
+        return new PrincipalDetails(sessionUser, oauth2User.getAttributes());
     }
 }
