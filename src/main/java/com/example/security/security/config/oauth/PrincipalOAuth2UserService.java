@@ -41,33 +41,27 @@ public class PrincipalOAuth2UserService extends DefaultOAuth2UserService {
          * email=jsy11101@gmail.com, email_verified=true, locale=ko
          */
 
-        log.info("getAttributes : {}",  super.loadUser(userRequest).getAttributes());
-
         OAuth2User oauth2User = super.loadUser(userRequest);
         
-        Oauth2UserInfo oauth2UserInfo = null;
-        if (userRequest.getClientRegistration().getRegistrationId().equals("google")) {
-            log.info("구글 로그인 요청");
-            oauth2UserInfo = new GoogleUserInfo(oauth2User.getAttributes());
-        } else if (userRequest.getClientRegistration().getRegistrationId().equals("facebook")) {
-            log.info("페이스북 로그인 요청");
-            oauth2UserInfo = new FacebookUserInfo(oauth2User.getAttributes());
-        } else if (userRequest.getClientRegistration().getRegistrationId().equals("naver")) {
-            log.info("네이버 로그인 요청");
-            oauth2UserInfo = new NaverUserInfo((Map)oauth2User.getAttributes().get("response"));
-        }else {
-            System.out.println("우린 구글 페이스북만 지원합니다.");
-        }
+        Oauth2UserInfo oauth2UserInfo = getOauth2UserInfo(userRequest, oauth2User);
 
+        User user = saveOrGetUser(oauth2UserInfo);
+        SessionUser sessionUser = new SessionUser(user);
+        httpSession.setAttribute("user", sessionUser);
+
+        return new PrincipalDetails(sessionUser, oauth2User.getAttributes());
+    }
+
+    private User saveOrGetUser(Oauth2UserInfo oauth2UserInfo) {
         String provider = oauth2UserInfo.getProvider();
         String providerId = oauth2UserInfo.getProviderId();
         String username = provider + "_" + providerId;
         String email = oauth2UserInfo.getEmail();
         String nickname = oauth2UserInfo.getName();
-        //String password = bCryptPasswordEncoder.encode("비밀번호");
         String role = "ROLE_USER";
 
         User user = userRepository.findByUsername(username);
+
         if (user == null) {
             user = User.builder()
                     .username(username)
@@ -81,9 +75,20 @@ public class PrincipalOAuth2UserService extends DefaultOAuth2UserService {
 
             userRepository.save(user);
         }
-        SessionUser sessionUser = new SessionUser(user);
-        httpSession.setAttribute("user", sessionUser);
+        return user;
+    }
 
-        return new PrincipalDetails(sessionUser, oauth2User.getAttributes());
+    private Oauth2UserInfo getOauth2UserInfo(OAuth2UserRequest userRequest, OAuth2User oauth2User) {
+        if (userRequest.getClientRegistration().getRegistrationId().equals("google")) {
+            return new GoogleUserInfo(oauth2User.getAttributes());
+        }
+        if (userRequest.getClientRegistration().getRegistrationId().equals("facebook")) {
+            return new FacebookUserInfo(oauth2User.getAttributes());
+        }
+        if (userRequest.getClientRegistration().getRegistrationId().equals("naver")) {
+            return new NaverUserInfo((Map) oauth2User.getAttributes().get("response"));
+        }
+
+        throw new RuntimeException("지원하는 OAuth provier가 없습니다.");
     }
 }
