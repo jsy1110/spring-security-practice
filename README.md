@@ -1,5 +1,5 @@
 # spring-security-practice
-Spring security : Basic Authentication, OAuth2.0(Google, Facebook, Naver), Redis Session, DB Session
+Spring security : Basic Authentication, OAuth2.0(Google, Facebook, Naver), Session(Redis, DB, WAS)
 
 ## 주요 기능 with Spring Security
 1. Authentication : 회원가입, 로그인
