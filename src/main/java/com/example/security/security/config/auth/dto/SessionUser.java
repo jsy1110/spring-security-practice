@@ -1,6 +1,6 @@
 package com.example.security.security.config.auth.dto;
 
-import com.example.security.security.model.User;
+import com.example.security.security.domain.user.User;
 import lombok.Getter;
 
 import java.io.Serializable;

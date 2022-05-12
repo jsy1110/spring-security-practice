@@ -1,5 +1,6 @@
 package com.example.security.security.config;
 
+import com.example.security.security.config.auth.CustomAuthenticationSuccessHandler;
 import com.example.security.security.config.auth.PrincipalDetailsService;
 import com.example.security.security.config.oauth.PrincipalOAuth2UserService;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.RememberMeServices;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
@@ -22,6 +24,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final PrincipalOAuth2UserService oauth2UserService;
     private final PrincipalDetailsService principalDetailsService;
+    private final CustomAuthenticationSuccessHandler successHandler;
 
     @Bean
     public BCryptPasswordEncoder encodePassword() {
@@ -41,14 +44,16 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         ;
 
         http.authorizeRequests()
-                    .antMatchers("/user/**").authenticated()
-                    .antMatchers("/manager/**").access("hasRole('ROLE_ADMIN') or hasRole('ROLE_MANAGER')")
-                    .antMatchers("/admin/**").access("hasRole('ROLE_ADMIN')")
+                    .antMatchers("/guest/**").authenticated()
+//                    .antMatchers("/user/**").hasAnyRole(Role.USER.name(), Role.ADMIN.name(), Role.MANAGER.name())
+//                    .antMatchers("/manager/**").hasAnyRole(Role.ADMIN.name(), Role.MANAGER.name())
+//                    .antMatchers("/admin/**").hasRole(Role.ADMIN.name())
                     .anyRequest().permitAll()
                 .and()
                     .formLogin()
                     .loginPage("/loginForm")
                     .loginProcessingUrl("/login")  // login 주소가 호출이 되면 시큐리티가 낚아채서 대신 로그인 진행
+//                    .successHandler(successHandler)
                     .defaultSuccessUrl("/")
                 /**
                  * 1. 코드받기(인증)
@@ -60,9 +65,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                     .oauth2Login()
                     .loginPage("/loginForm")    // 구글 로그인이 완료된 뒤의 후처리 필요
+//                    .successHandler(successHandler)
                     .userInfoEndpoint()
                     .userService(oauth2UserService)
-
         ;
+
     }
 }

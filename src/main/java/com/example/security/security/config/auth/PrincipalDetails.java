@@ -1,10 +1,7 @@
 package com.example.security.security.config.auth;
 
 import com.example.security.security.config.auth.dto.SessionUser;
-import com.example.security.security.model.User;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import org.hibernate.Session;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
